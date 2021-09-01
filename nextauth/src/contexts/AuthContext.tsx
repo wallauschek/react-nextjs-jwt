@@ -5,6 +5,8 @@ type SignInCredentials = {
   password: string;
 };
 
+//teste
+
 type AuthContextData = {
   signIn(credentials: SignInCredentials): Promise<void>;
   isAuthenticated: boolean;
