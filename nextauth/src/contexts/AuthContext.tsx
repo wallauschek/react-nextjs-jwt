@@ -1,16 +1,22 @@
-import { createContext, ReactNode } from "react";
+import { createContext, ReactNode, useState } from "react";
 import { api } from "../services/api";
+import Router from "next/router";
 
 type SignInCredentials = {
   email: string;
   password: string;
 };
 
-//teste
+type User = {
+  email: string;
+  permissions: string[];
+  roles: string[];
+};
 
 type AuthContextData = {
   signIn(credentials: SignInCredentials): Promise<void>;
   isAuthenticated: boolean;
+  user: User;
 };
 
 type AuthProviderProps = {
@@ -21,7 +27,8 @@ type AuthProviderProps = {
 export const AuthContext = createContext({} as AuthContextData);
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const isAuthenticated = false;
+  const [user, setUser] = useState<User>(null);
+  const isAuthenticated = !!user; // Transformando váriavel em boollean
 
   //A função tem q ser async por causa que retorno uma promisse
   async function signIn({ email, password }: SignInCredentials) {
@@ -31,14 +38,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email,
         password,
       });
-      console.log(response);
+
+      //Desestruturação
+      const { permissions, roles } = response.data;
+
+      //Salvando dados do usuário
+      setUser({
+        email,
+        permissions,
+        roles,
+      });
+
+      //Redirecionando usuário
+      Router.push("/dashboard");
     } catch (error) {
       console.log(error);
     }
   }
   return (
-    <AuthContext.Provider value={{ signIn, isAuthenticated }}>
+    //Passando as informações do contexto globalmente por toda aplicação
+    <AuthContext.Provider value={{ signIn, isAuthenticated, user }}>
       {children}
     </AuthContext.Provider>
   );
 }
+
+//OBS:
+// sessionsStorage => saiu da aplicação a sessão apaga
+// localStorage => LocalStorage utiliado do lado do Browser, next é executado pelo lado do servidor
+// cookies => Utiliza tanto pelo lado browser quanto pelo lado do servidor
