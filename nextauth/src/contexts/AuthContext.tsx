@@ -1,7 +1,7 @@
-import { createContext, ReactNode, useState } from "react";
+import { createContext, ReactNode, useEffect, useState } from "react";
 import { api } from "../services/api";
 import Router from "next/router";
-import { setCookie } from "nookies";
+import { setCookie, parseCookies } from "nookies";
 
 type SignInCredentials = {
   email: string;
@@ -30,6 +30,17 @@ export const AuthContext = createContext({} as AuthContextData);
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User>(null);
   const isAuthenticated = !!user; // Transformando váriavel em boollean
+
+  //parseCookies => retorna uma lista de todos cookies salvo
+  useEffect(() => {
+    const { "nextauth.token": token } = parseCookies();
+
+    if (token) {
+      api.get("/me").then((response) => {
+        console.log(response);
+      });
+    }
+  }, []);
 
   //A função tem q ser async por causa que retorno uma promisse
   async function signIn({ email, password }: SignInCredentials) {
