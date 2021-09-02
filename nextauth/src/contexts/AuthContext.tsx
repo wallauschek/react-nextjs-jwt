@@ -76,6 +76,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         roles,
       });
 
+      //Atualizando header no login
+      api.defaults.headers["Authorization"] = `Bearer ${token}`;
+
       //Redirecionando usuário
       Router.push("/dashboard");
     } catch (error) {
