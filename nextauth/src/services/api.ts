@@ -5,6 +5,7 @@ import { parseCookies, setCookie } from "nookies";
 // Como por ex: fazendo refresh do token
 let cookies = parseCookies();
 
+//Executa uma unica vez quando usuário abre a tela
 export const api = axios.create({
   baseURL: "http://localhost:3333",
   // token para autenticar rotas
