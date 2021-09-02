@@ -1,5 +1,5 @@
 import axios, { AxiosError } from "axios";
-import { parseCookies } from "nookies";
+import { parseCookies, setCookie } from "nookies";
 
 //Deixando variavel como let para poder modicar o valor dela
 // Como por ex: fazendo refresh do token
@@ -16,10 +16,10 @@ export const api = axios.create({
 //Esperando a resposta do back-end
 api.interceptors.response.use(
   (response) => {
-    return response;
+    return response; //success
   },
   (error: AxiosError) => {
-    // console.log(error.response.status);
+    // reponse deu error
     if (error.response.status === 401) {
       if (error.response.data?.code === "token.expired") {
         //renovar token
@@ -33,6 +33,23 @@ api.interceptors.response.use(
           })
           .then((response) => {
             const token = response.data.token;
+
+            //ladoBrowser, nomeToken , valorToken
+            setCookie(undefined, "nextauth.token", token, {
+              maxAge: 60 * 60 * 24 * 30, // 300 days
+              path: "/", // qualquer endereço para aplicação
+            });
+            setCookie(
+              undefined,
+              "nextauth.refreshToken",
+              response.data.refresToken,
+              {
+                maxAge: 60 * 60 * 24 * 30, // 300 days
+                path: "/", // qualquer endereço para aplicação
+              }
+            );
+
+            // api.defaults.headers["Authorization"] = `Bearer ${token}`;
           });
       } else {
         // deslogar o usuário
