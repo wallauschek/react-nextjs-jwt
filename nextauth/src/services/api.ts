@@ -30,14 +30,14 @@ api.interceptors.response.use(
 
         api
           .post("/refresh", {
-            refreshToken,
+            refreshToken, // passando refreshToken para atualizar o token
           })
           .then((response) => {
             const token = response.data.token;
 
             //ladoBrowser, nomeToken , valorToken
             setCookie(undefined, "nextauth.token", token, {
-              maxAge: 60 * 60 * 24 * 30, // 300 days
+              maxAge: 60 * 60 * 24 * 30, // 30 days
               path: "/", // qualquer endereço para aplicação
             });
             setCookie(
@@ -50,7 +50,7 @@ api.interceptors.response.use(
               }
             );
 
-            // api.defaults.headers["Authorization"] = `Bearer ${token}`;
+            api.defaults.headers["Authorization"] = `Bearer ${token}`;
           });
       } else {
         // deslogar o usuário
