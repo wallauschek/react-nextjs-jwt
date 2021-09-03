@@ -1,6 +1,6 @@
 import axios, { AxiosError } from "axios";
-import { request } from "http";
 import { parseCookies, setCookie } from "nookies";
+import { signOut } from "../contexts/AuthContext";
 
 //Deixando variavel como let para poder modicar o valor dela
 // Como por ex: fazendo refresh do token
@@ -84,8 +84,10 @@ api.interceptors.response.use(
           });
         });
       } else {
-        // deslogar o usuário
+        signOut();
       }
     }
+
+    return Promise.reject(error);
   }
 );
