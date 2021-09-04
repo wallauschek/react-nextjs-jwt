@@ -37,10 +37,10 @@ export default function Home() {
 }
 
 //Utilizando cookies token do lado do servidor
-export const getServerSideProps: GetServerSideProps = withSSRGuest<{
-  users: string[];
-}>(async (ctx) => {
-  return {
-    props: { users: ["sss"] },
-  };
-});
+export const getServerSideProps: GetServerSideProps = withSSRGuest(
+  async (ctx) => {
+    return {
+      props: {},
+    };
+  }
+);
