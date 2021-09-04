@@ -19,7 +19,7 @@ export default function Dashboard() {
 export const getServerSideProps: GetServerSideProps = withSSRAuth(
   async (ctx) => {
     return {
-      props: { users: ["sss"] },
+      props: {},
     };
   }
 );
