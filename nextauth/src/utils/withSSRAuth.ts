@@ -12,17 +12,17 @@ import { parseCookies } from "nookies";
  * função para usuário não autenticados
  */
 
-//Se tiver token ir para pagina Dasbord
-export function withSSRGuest<p>(fn: GetServerSideProps<p>) {
+//Se não tiver token redirecionar para login
+export function withSSRAuth<p>(fn: GetServerSideProps<p>) {
   return async (
     ctx: GetServerSidePropsContext
   ): Promise<GetServerSidePropsResult<p>> => {
     const cookies = parseCookies(ctx);
 
-    if (cookies["nextauth.token"]) {
+    if (!cookies["nextauth.token"]) {
       return {
         redirect: {
-          destination: "/dashboard",
+          destination: "/",
           permanent: false,
         },
       };

@@ -1,6 +1,8 @@
+import { GetServerSideProps } from "next";
 import { useContext, useEffect } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 import { api } from "../services/api";
+import { withSSRAuth } from "../utils/withSSRAuth";
 
 export default function Dashboard() {
   const { user } = useContext(AuthContext);
@@ -13,3 +15,11 @@ export default function Dashboard() {
   }, []);
   return <h1>Dashboard: {user?.email}</h1>;
 }
+//Criando rotas para usuário autenticados
+export const getServerSideProps: GetServerSideProps = withSSRAuth(
+  async (ctx) => {
+    return {
+      props: { users: ["sss"] },
+    };
+  }
+);
