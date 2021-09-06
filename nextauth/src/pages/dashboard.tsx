@@ -11,6 +11,7 @@ import { withSSRAuth } from "../utils/withSSRAuth";
 
 export default function Dashboard() {
   const { user } = useContext(AuthContext);
+  // Permissão
   const userCanSeeMetrics = useCan({
     permissions: ["metrics.list"],
   });
@@ -25,7 +26,7 @@ export default function Dashboard() {
     <>
       <h1>Dashboard: {user?.email}</h1>
       {userCanSeeMetrics && <div>Métricas</div>}
-      <Can permissions={["metrics.list"]}>
+      <Can roles={["administrator"]}>
         <h2>Métricas</h2>
       </Can>
     </>
