@@ -15,9 +15,9 @@ export function useCan({ permissions, roles }: UseCanParams) {
 
   if (permissions?.length > 0) {
     //@Every returna true ou false de acordo a condição
-    const hasAllPermissions = permissions.every((permissions) => {
+    const hasAllPermissions = permissions.every((permission) => {
       //Verificando se existe permissão no array de permissions
-      return user.permissions.includes(permissions);
+      return user.permissions.includes(permission);
     });
 
     //Caso não tenha todas permissões return false
@@ -28,7 +28,7 @@ export function useCan({ permissions, roles }: UseCanParams) {
 
   if (roles?.length > 0) {
     //@Every returna true ou false de acordo a condição
-    const hasAllRoles = permissions.some((role) => {
+    const hasAllRoles = roles.every((role) => {
       return user.roles.includes(role);
     });
 
