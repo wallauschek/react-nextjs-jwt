@@ -27,7 +27,7 @@ export function useCan({ permissions, roles }: UseCanParams) {
 
   if (roles?.length > 0) {
     //@Every returna true ou false de acordo a condição
-    const hasAllRoles = permissions.every((role) => {
+    const hasAllRoles = permissions.some((role) => {
       return user.roles.includes(role);
     });
 
