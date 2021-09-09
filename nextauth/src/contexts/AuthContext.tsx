@@ -15,7 +15,8 @@ type User = {
 };
 
 type AuthContextData = {
-  signIn(credentials: SignInCredentials): Promise<void>;
+  signIn: (credentials: SignInCredentials) => Promise<void>;
+  signOut: () => void;
   isAuthenticated: boolean;
   user: User;
 };
@@ -99,7 +100,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
   return (
     //Passando as informações do contexto globalmente por toda aplicação
-    <AuthContext.Provider value={{ signIn, isAuthenticated, user }}>
+    <AuthContext.Provider value={{ signIn, isAuthenticated, user, signOut }}>
       {children}
     </AuthContext.Provider>
   );
