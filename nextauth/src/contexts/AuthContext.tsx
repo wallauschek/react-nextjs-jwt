@@ -41,7 +41,7 @@ export function signOut() {
   destroyCookie(undefined, "nextauth.token");
   destroyCookie(undefined, "nextauth.refreshToken");
 
-  authChannel.postMessage("signOut");
+  authChannel.postMessage("signOut"); // Menssagem de deslogar usuário
 
   Router.push("/");
 }
@@ -51,8 +51,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const isAuthenticated = !!user;
 
   useEffect(() => {
-    authChannel = new BroadcastChannel("auth");
+    authChannel = new BroadcastChannel("auth"); // iniciando canal de comunicação para outras páginas do navegadores ouvir
 
+    //Chamaar a funcção de acordo  a menssagem
     authChannel.onmessage = (message) => {
       switch (message.data) {
         case "signOut":
@@ -120,7 +121,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       api.defaults.headers["Authorization"] = `Bearer ${token}`;
 
       Router.push("/dashboard");
-      authChannel.postMessage("signIn");
+      authChannel.postMessage("signIn"); // menssagem de logar usuário
     } catch (error) {
       console.log(error);
     }
