@@ -5,6 +5,12 @@ import {
 } from "next";
 import { destroyCookie, parseCookies } from "nookies";
 import { AuthTokenError } from "../services/errors/AuthTokenError";
+import decode from "jwt-decode";
+
+type withSSRAuthOptions = {
+  permissions?: string[];
+  roles?: string[];
+};
 
 /**
  *
@@ -14,13 +20,17 @@ import { AuthTokenError } from "../services/errors/AuthTokenError";
  */
 
 //Se não tiver token redirecionar para login
-export function withSSRAuth<p>(fn: GetServerSideProps<p>) {
+export function withSSRAuth<p>(
+  fn: GetServerSideProps<p>,
+  options?: withSSRAuthOptions
+) {
   return async (
     ctx: GetServerSidePropsContext
   ): Promise<GetServerSidePropsResult<p>> => {
     const cookies = parseCookies(ctx);
+    const token = cookies["nextauth.token"];
 
-    if (!cookies["nextauth.token"]) {
+    if (!token) {
       return {
         redirect: {
           destination: "/",
@@ -28,6 +38,9 @@ export function withSSRAuth<p>(fn: GetServerSideProps<p>) {
         },
       };
     }
+
+    /* Decodificando token */
+    const user = decode(token);
 
     try {
       return await fn(ctx);
