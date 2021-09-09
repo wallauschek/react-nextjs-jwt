@@ -1,12 +1,15 @@
-import { createContext, ReactNode, useEffect, useState } from "react";
-import Router from "next/router";
-import { setCookie, parseCookies, destroyCookie } from "nookies";
-import { api } from "../services/apiClient";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
-type SignInCredentials = {
-  email: string;
-  password: string;
-};
+import { setCookie, parseCookies, destroyCookie } from "nookies";
+import Router from "next/router";
+
+import { api } from "../services/apiClient";
 
 type User = {
   email: string;
@@ -14,33 +17,61 @@ type User = {
   roles: string[];
 };
 
+type SignCredentials = {
+  email: string;
+  password: string;
+};
+
 type AuthContextData = {
-  signIn: (credentials: SignInCredentials) => Promise<void>;
+  signIn: (credentials: SignCredentials) => Promise<void>;
   signOut: () => void;
-  isAuthenticated: boolean;
   user: User;
+  isAuthenticated: boolean;
 };
 
 type AuthProviderProps = {
-  // tipagem quando o compoente pode receber qualquer coisa dentro dele
   children: ReactNode;
 };
 
 export const AuthContext = createContext({} as AuthContextData);
 
+let authChannel: BroadcastChannel;
+
 export function signOut() {
   destroyCookie(undefined, "nextauth.token");
   destroyCookie(undefined, "nextauth.refreshToken");
+
+  authChannel.postMessage("signOut");
 
   Router.push("/");
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User>(null);
-  const isAuthenticated = !!user; // Transformando váriavel em boollean
+  const [user, setUser] = useState<User>();
+  const isAuthenticated = !!user;
 
-  //parseCookies => retorna uma lista de todos cookies salvo
   useEffect(() => {
+    authChannel = new BroadcastChannel("auth");
+
+    authChannel.onmessage = (message) => {
+      switch (message.data) {
+        case "signOut":
+          signOut();
+          authChannel.close();
+          break;
+
+        case "signIn":
+          window.location.replace("http://localhost:3000/dashboard");
+          break;
+
+        default:
+          break;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    //  Não é possível desestruturar algo que tem o caractere . por isso colocamos entre aspas e atribuímos a uma variável.
     const { "nextauth.token": token } = parseCookies();
 
     if (token) {
@@ -55,58 +86,61 @@ export function AuthProvider({ children }: AuthProviderProps) {
             roles,
           });
         })
-        .catch((error) => {
+        .catch(() => {
           signOut();
         });
     }
   }, []);
 
-  //A função tem q ser async por causa que retorno uma promisse
-  async function signIn({ email, password }: SignInCredentials) {
-    //Tratamento de erro
+  async function signIn({ email, password }: SignCredentials) {
     try {
       const response = await api.post("sessions", {
         email,
         password,
       });
 
-      //Desestruturação
       const { token, refreshToken, permissions, roles } = response.data;
-      //ladoBrowser, nomeToken , valorToken
+
       setCookie(undefined, "nextauth.token", token, {
-        maxAge: 60 * 60 * 24 * 30, // 300 days
-        path: "/", // qualquer endereço para aplicação
-      });
-      setCookie(undefined, "nextauth.refreshToken", refreshToken, {
-        maxAge: 60 * 60 * 24 * 30, // 300 days
-        path: "/", // qualquer endereço para aplicação
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        path: "/",
       });
 
-      //Salvando dados do usuário
+      setCookie(undefined, "nextauth.refreshToken", refreshToken, {
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        path: "/",
+      });
+
       setUser({
         email,
         permissions,
         roles,
       });
 
-      //Atualizando header no login
       api.defaults.headers["Authorization"] = `Bearer ${token}`;
 
-      //Redirecionando usuário
       Router.push("/dashboard");
+      authChannel.postMessage("signIn");
     } catch (error) {
       console.log(error);
     }
   }
+
   return (
-    //Passando as informações do contexto globalmente por toda aplicação
-    <AuthContext.Provider value={{ signIn, isAuthenticated, user, signOut }}>
+    <AuthContext.Provider
+      value={{
+        signIn,
+        signOut,
+        isAuthenticated,
+        user,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
-//OBS:
-// sessionsStorage => saiu da aplicação a sessão apaga
-// localStorage => LocalStorage utiliado do lado do Browser, next é executado pelo lado do servidor
-// cookies => Utiliza tanto pelo lado browser quanto pelo lado do servidor
+export function useAuth() {
+  const auth = useContext(AuthContext);
+  return auth;
+}
