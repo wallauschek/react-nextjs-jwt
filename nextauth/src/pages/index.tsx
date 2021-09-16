@@ -5,7 +5,7 @@ import styles from "../styles/Home.module.css";
 import { withSSRGuest } from "../utils/withSSRGuest";
 
 export default function Home() {
-  const [email, setEmail] = useState("");
+  const [codigoRubeus, setCodigoRubeus] = useState(0);
   const [password, setPassword] = useState("");
 
   const { signIn } = useContext(AuthContext);
@@ -13,7 +13,7 @@ export default function Home() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const data = {
-      email,
+      codigoRubeus,
       password,
     };
 
@@ -22,9 +22,9 @@ export default function Home() {
   return (
     <form onSubmit={handleSubmit} className={styles.container}>
       <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        type="number"
+        value={codigoRubeus}
+        onChange={(e) => setCodigoRubeus(Number(e.target.value))}
       />
       <input
         type="password"

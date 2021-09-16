@@ -16,7 +16,7 @@ export function setupAPIClient(ctx = undefined) {
 
   //Executa uma unica vez quando usuário abre a tela
   const api = axios.create({
-    baseURL: "http://localhost:3333",
+    baseURL: "http://localhost:3001",
     // token para autenticar rotas
     headers: {
       Authorization: `Bearer ${cookies["nextauth.token"]}`,
@@ -29,9 +29,10 @@ export function setupAPIClient(ctx = undefined) {
       return response; //success
     },
     (error: AxiosError) => {
-      // reponse deu error
+      // response deu error
+      // console.log(error.response)
       if (error.response.status === 401) {
-        if (error.response.data?.code === "token.expired") {
+        if (error.response.data?.message === "Unauthorized") {
           //renovar token
           cookies = parseCookies(ctx);
 
@@ -41,23 +42,23 @@ export function setupAPIClient(ctx = undefined) {
           if (!isRefreshhing) {
             isRefreshhing = true;
             api
-              .post("/refresh", {
+              .post("/auth/refreshToken", {
                 refreshToken, // passando refreshToken para atualizar o token
               })
               .then((response) => {
-                const token = response.data.token;
+                const token = response.data.accessToken;
 
                 //ladoBrowser, nomeToken , valorToken
                 setCookie(ctx, "nextauth.token", token, {
-                  maxAge: 60 * 60 * 24 * 30, // 30 days
+                  maxAge: 60 * 60 * 24 * 7, // 7 days
                   path: "/", // qualquer endereço para aplicação
                 });
                 setCookie(
                   ctx,
                   "nextauth.refreshToken",
-                  response.data.refresToken,
+                  response.data.refreshToken,
                   {
-                    maxAge: 60 * 60 * 24 * 30, // 300 days
+                    maxAge: 60 * 60 * 24 * 7, // 7 days
                     path: "/", // qualquer endereço para aplicação
                   }
                 );
@@ -70,9 +71,9 @@ export function setupAPIClient(ctx = undefined) {
                 failedRequestsQueue = [];
 
                 //lado do cliente
-                if (process.browser) {
-                  signOut();
-                }
+                // if (process.browser) {
+                //   signOut();
+                // }
               })
               .catch((err) => {
                 failedRequestsQueue.forEach((request) =>
@@ -97,7 +98,7 @@ export function setupAPIClient(ctx = undefined) {
             });
           });
         } else {
-          //lado do cliente
+          // deslogar o usuário
           if (process.browser) {
             signOut();
           } else {

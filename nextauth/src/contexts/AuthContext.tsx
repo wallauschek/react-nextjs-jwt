@@ -12,13 +12,13 @@ import Router from "next/router";
 import { api } from "../services/apiClient";
 
 type User = {
-  email: string;
+  codigoRubeus: number;
   permissions: string[];
   roles: string[];
 };
 
 type SignCredentials = {
-  email: string;
+  codigoRubeus: number;
   password: string;
 };
 
@@ -77,14 +77,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     if (token) {
       api
-        .get("/me")
+        .get("auth/me")
         .then((response) => {
-          const { email, permissions, roles } = response.data;
+          
+          const { codigoRubeus } = response.data;
 
           setUser({
-            email,
-            permissions,
-            roles,
+            codigoRubeus,
+            permissions: ["metrics.list"],
+            roles: ['administrator'],
           });
         })
         .catch(() => {
@@ -93,32 +94,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
-  async function signIn({ email, password }: SignCredentials) {
+  async function signIn({ codigoRubeus, password }: SignCredentials) {
     try {
-      const response = await api.post("sessions", {
-        email,
+      const response = await api.post("/auth/login", {
+        codigoRubeus,
         password,
       });
 
-      const { token, refreshToken, permissions, roles } = response.data;
+      const { accessToken, refreshToken } = response.data;
 
-      setCookie(undefined, "nextauth.token", token, {
-        maxAge: 60 * 60 * 24 * 30, // 30 days
+      setCookie(undefined, "nextauth.token", accessToken, {
+        maxAge: 60 * 60 * 24 * 7, // 7 day
         path: "/",
       });
 
       setCookie(undefined, "nextauth.refreshToken", refreshToken, {
-        maxAge: 60 * 60 * 24 * 30, // 30 days
+        maxAge: 60 * 60 * 24 * 7, // 7 days
         path: "/",
       });
 
       setUser({
-        email,
-        permissions,
-        roles,
+        codigoRubeus,
+        permissions: ["metrics.list"],
+        roles: ['administrator'],
       });
 
-      api.defaults.headers["Authorization"] = `Bearer ${token}`;
+      api.defaults.headers["Authorization"] = `Bearer ${accessToken}`;
 
       Router.push("/dashboard");
       authChannel.postMessage("signIn"); // menssagem de logar usuário
